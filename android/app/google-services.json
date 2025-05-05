@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "495333670318",
+    "project_id": "taskmate-2603f",
+    "storage_bucket": "taskmate-2603f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495333670318:android:ddc1421abc43240eb79c3f",
+        "android_client_info": {
+          "package_name": "com.example.skilltrade"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt6eTBVp3wDmG8MRR-uQFfK2cgqiADnvM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495333670318:android:dff32d634935f221b79c3f",
+        "android_client_info": {
+          "package_name": "com.example.task_mate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt6eTBVp3wDmG8MRR-uQFfK2cgqiADnvM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
