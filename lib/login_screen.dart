@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'signup_screen.dart';
-import 'home_page.dart';
+import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print('Logged in user: ${userCredential.user?.uid}');
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } on FirebaseAuthException catch (e) {
         String errorMessage = 'An error occurred during login.';
