@@ -1,6 +1,7 @@
 // home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'gig_details_screen.dart'; // Import the new screen
 
 class HomeScreen extends StatefulWidget {
@@ -12,10 +13,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Future<List<Map<String, dynamic>>> _fetchGigs() async {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     try {
-      QuerySnapshot<Map<String, dynamic>> snapshot =
-      await FirebaseFirestore.instance.collection('gigs').orderBy('postedDate', descending: true).get();
-      return snapshot.docs.map((doc) => doc.data()).toList();
+      QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+          .collection('gigs')
+          .where('postedBy', isNotEqualTo: currentUserId) // Filter out own posts
+          .orderBy('postedDate', descending: true)
+          .get();
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id; // Include the document ID in the data
+        return data;
+      }).toList();
     } catch (e) {
       print('Error fetching gigs: $e');
       return [];

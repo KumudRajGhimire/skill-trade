@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'profile_screen.dart'; // Import your ProfileScreen
 
 class ChatScreen extends StatefulWidget {
   final String otherUserId;
@@ -24,6 +25,16 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _getOrCreateChatId();
     _loadOtherUsername();
+    _markAsRead(); // Mark messages as read when entering the chat
+  }
+
+  Future<void> _markAsRead() async {
+    if (_chatId != null) {
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(_chatId)
+          .update({'unreadCount_$_currentUserId': 0});
+    }
   }
 
   Future<void> _loadOtherUsername() async {
@@ -33,15 +44,15 @@ class _ChatScreenState extends State<ChatScreen> {
       if (userSnapshot.exists) {
         final userData = userSnapshot.data() as Map<String, dynamic>?;
         _otherUsername = userData?['username'] as String? ?? 'User';
-        setState(() {}); // Update the UI with the username
+        if (mounted) setState(() {}); // Check if widget is still in the tree
       } else {
         _otherUsername = 'User'; // Default if user not found
-        setState(() {});
+        if (mounted) setState(() {});
       }
     } catch (e) {
       print('Error loading other username: $e');
       _otherUsername = 'User'; // Default on error
-      setState(() {});
+      if (mounted) setState(() {});
     }
   }
 
@@ -57,21 +68,41 @@ class _ChatScreenState extends State<ChatScreen> {
       await FirebaseFirestore.instance.collection('chats').doc(_chatId).set({
         'participants': [_currentUserId, widget.otherUserId],
         'createdAt': Timestamp.now(),
+        'unreadCount_$_currentUserId': 0, // Initialize unread count for current user
+        'unreadCount_${widget.otherUserId}': 0, // Initialize unread count for other user
       });
+    } else {
+      // Ensure unread count fields exist if the chat already exists
+      final chatData = chatSnapshot.data() as Map<String, dynamic>?;
+      if (chatData != null) {
+        if (!chatData.containsKey('unreadCount_$_currentUserId')) {
+          await FirebaseFirestore.instance.collection('chats').doc(_chatId).update({'unreadCount_$_currentUserId': 0});
+        }
+        if (!chatData.containsKey('unreadCount_${widget.otherUserId}')) {
+          await FirebaseFirestore.instance.collection('chats').doc(_chatId).update({'unreadCount_${widget.otherUserId}': 0});
+        }
+      }
     }
-    setState(() {}); // Trigger a rebuild once chatId is determined
+    if (mounted) setState(() {}); // Trigger a rebuild once chatId is determined
   }
 
   void _sendMessage() async {
     if (_chatId != null && _messageController.text.trim().isNotEmpty) {
+      final messageText = _messageController.text.trim();
+      final timestamp = Timestamp.now();
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(_chatId)
           .collection('messages')
           .add({
         'senderId': _currentUserId,
-        'text': _messageController.text.trim(),
-        'timestamp': Timestamp.now(),
+        'text': messageText,
+        'timestamp': timestamp,
+      });
+      await FirebaseFirestore.instance.collection('chats').doc(_chatId).update({
+        'lastMessage': messageText,
+        'lastMessageTimestamp': timestamp,
+        'unreadCount_${widget.otherUserId}': FieldValue.increment(1), // Increment recipient's unread count
       });
       _messageController.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -84,11 +115,23 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _navigateToUserProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(userId: widget.otherUserId), // Pass the other user's ID
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_otherUsername ?? 'Chat'),
+        title: GestureDetector(
+          onTap: _navigateToUserProfile,
+          child: Text(_otherUsername ?? 'Chat'),
+        ),
       ),
       body: Column(
         children: <Widget>[

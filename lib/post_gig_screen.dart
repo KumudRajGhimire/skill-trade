@@ -35,7 +35,8 @@ class _PostGigScreenState extends State<PostGigScreen> {
           if (username != null) {
             final newGig = {
               'title': _titleController.text.trim(),
-              'offeringSkill': _offeringSkillController.text.trim(),
+              if (_gigType == 'Trade')
+                'offeringSkill': _offeringSkillController.text.trim(),
               'desiredSkill': _desiredSkillController.text.trim(),
               'description': _descriptionController.text.trim(),
               'location': _locationController.text.trim(),
@@ -98,18 +99,38 @@ class _PostGigScreenState extends State<PostGigScreen> {
                     : null,
               ),
               const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _offeringSkillController,
+              DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
-                  labelText: 'Offering Skill',
+                  labelText: 'Gig Type',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                value == null || value.trim().isEmpty
-                    ? 'Please enter the skill you are offering'
-                    : null,
+                value: _gigType,
+                items: <String>['Paid', 'Trade'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _gigType = newValue!;
+                  });
+                },
               ),
               const SizedBox(height: 16.0),
+              if (_gigType == 'Trade')
+                TextFormField(
+                  controller: _offeringSkillController,
+                  decoration: const InputDecoration(
+                    labelText: 'Offering Skill',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) =>
+                  value == null || value.trim().isEmpty
+                      ? 'Please enter the skill you are offering'
+                      : null,
+                ),
+              if (_gigType == 'Trade') const SizedBox(height: 16.0),
               TextFormField(
                 controller: _desiredSkillController,
                 decoration: const InputDecoration(
@@ -147,25 +168,6 @@ class _PostGigScreenState extends State<PostGigScreen> {
                     : null,
               ),
               const SizedBox(height: 16.0),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Gig Type',
-                  border: OutlineInputBorder(),
-                ),
-                value: _gigType,
-                items: <String>['Paid', 'Trade'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _gigType = newValue!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16.0),
               if (_gigType == 'Paid')
                 TextFormField(
                   controller: _paymentController,
@@ -181,6 +183,7 @@ class _PostGigScreenState extends State<PostGigScreen> {
                   },
                   keyboardType: TextInputType.number,
                 ),
+              if (_gigType == 'Paid') const SizedBox(height: 24.0),
               const SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: _postGig,
