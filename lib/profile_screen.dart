@@ -382,6 +382,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: _isEditingBio
                     ? ElevatedButton(
                   onPressed: _updateBio,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Increased padding
+                    textStyle: const TextStyle(fontSize: 16), // Optional: Increased font size
+                  ),
                   child: const Text('Save Bio'),
                 )
                     : TextButton(
@@ -390,6 +394,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _isEditingBio = true;
                     });
                   },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Increased padding
+                    textStyle: const TextStyle(fontSize: 16), // Optional: Increased font size
+                  ),
                   child: Text(
                     _bio?.isNotEmpty == true ? 'Edit Bio' : 'Add Bio',
                     style: TextStyle(color: Theme.of(context).primaryColor),

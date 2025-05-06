@@ -60,13 +60,11 @@ class _MainScreenState extends State<MainScreen> {
     final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      appBar: _selectedIndex == 4
+      appBar: (_selectedIndex == 4 || _selectedIndex == 1)
           ? null
           : AppBar(
         title: _selectedIndex == 0
             ? const Text('Available Gigs')
-            : _selectedIndex == 1
-            ? const Text('Chats')
             : _selectedIndex == 3
             ? const Text('Notifications')
             : const Text('Home'),

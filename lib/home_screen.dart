@@ -64,55 +64,82 @@ class _HomeScreenState extends State<HomeScreen> {
                   final gig = gigs[index];
                   return GestureDetector(
                     onTap: () => _navigateToGigDetails(gig),
-                    child: Card(
-                      margin: const EdgeInsets.all(8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              gig['title'] as String? ?? 'No Title',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            gig['title'] as String? ?? 'No Title',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              gig['description'] as String? ?? 'No Description',
-                              style: const TextStyle(fontSize: 16),
-                              maxLines: 2, // Keep description concise in the list
-                              overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            gig['description'] as String? ?? 'No Description',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                    const Icon(Icons.location_on_outlined, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Text(gig['location'] as String? ?? 'No Location'),
-                                  ],
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_outlined, color: Colors.blueGrey, size: 20),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  gig['location'] as String? ?? 'No Location',
+                                  style: const TextStyle(fontSize: 14),
                                 ),
-                                Text(
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.deepPurple.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
                                   gig['gigType'] == 'Trade'
                                       ? 'Trade'
                                       : gig['payment'] != null
                                       ? '₹${gig['payment']}'
                                       : 'Free',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.deepPurple,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text('Posted by: ${gig['postedByUsername'] as String? ?? 'Anonymous'}'),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Posted by: ${gig['postedByUsername'] ?? 'Anonymous'}',
+                            style: const TextStyle(fontSize: 13, color: Colors.grey),
+                          ),
+                        ],
                       ),
                     ),
                   );
+
                 },
               );
             } else {

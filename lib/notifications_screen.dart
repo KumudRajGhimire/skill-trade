@@ -25,6 +25,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _deleteNotification(BuildContext context, String notificationId) async {
+    try {
+      await FirebaseFirestore.instance.collection('notifications').doc(notificationId).delete();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification deleted.')),
+        );
+      }
+    } catch (e) {
+      print('Error deleting notification: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete notification.')),
+        );
+      }
+    }
+  }
+
   void _openChat(BuildContext context, String otherUserId) {
     Navigator.push(
       context,
@@ -135,7 +153,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ),
                     subtitle: Text('$formattedTime - $formattedDate'),
-                    trailing: !isRead ? const Icon(Icons.circle, color: Colors.blueAccent, size: 16) : null,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!isRead)
+                          const Icon(Icons.circle, color: Colors.blueAccent, size: 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _deleteNotification(context, notificationId),
+                        ),
+                      ],
+                    ),
                     onTap: () {
                       if (senderId != null && senderUsername.isNotEmpty) {
                         _showConfirmationDialog(context, senderId, senderUsername, notificationId);
