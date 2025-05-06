@@ -1,7 +1,13 @@
+// main_screen.dart
 import 'package:flutter/material.dart';
-import 'post_gig_screen.dart'; // Import the PostGigScreen
-import 'profile_screen.dart'; // Import the ProfileScreen
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // For more icons (optional, but good for community chat)
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'post_gig_screen.dart';
+import 'profile_screen.dart';
+import 'home_screen.dart';
+import 'chat_screen.dart';
+import 'notifications_screen.dart';
+import 'chats_overview_screen.dart'; // Import the new screen
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,87 +17,121 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0; // To manage bottom navigation if needed
+  int _selectedIndex = 0;
+  bool _newGigPosted = false;
 
-  void _navigateToPostGig() {
-    Navigator.push(
+  void _navigateToPostGig() async {
+    final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PostGigScreen()),
+      MaterialPageRoute(
+        builder: (context) => PostGigScreen(onGigPosted: _markGigAsPosted),
+      ),
     );
+    if (result == true) {
+      _markGigAsPosted(); // Ensure flag is set if pop with true
+    }
   }
 
-  void _navigateToHome() {
-    // TODO: Implement navigation to the home feed/screen
-    print('Navigate to Home');
+  void _markGigAsPosted() {
     setState(() {
-      _selectedIndex = 0; // If using bottom navigation
+      _newGigPosted = true;
     });
   }
 
-  void _navigateToCommunityChat() {
-    // TODO: Implement navigation to the community chat screen
-    print('Navigate to Community Chat');
+  void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = 2; // If using bottom navigation
+      _selectedIndex = index;
+      if (_selectedIndex == 0 && _newGigPosted) {
+        _newGigPosted = false; // Reset the flag
+      }
     });
   }
 
-  void _navigateToProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-    );
-  }
+  final List<Widget> _widgetOptions = <Widget>[
+    const HomeScreen(), // HomeScreen will handle its own loading and refreshing
+    const ChatsOverviewScreen(), // Use the new screen here
+    const SizedBox(), // Placeholder for Post Gig
+    const NotificationsScreen(),
+    const ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SkillTrade Home'),
+        title: _selectedIndex == 0
+            ? const Text('Available Gigs')
+            : _selectedIndex == 1
+            ? const Text('Chats')
+            : _selectedIndex == 3
+            ? const Text('Notifications')
+            : _selectedIndex == 4
+            ? const Text('Profile')
+            : const Text('Home'),
         automaticallyImplyLeading: false,
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: _navigateToProfile,
-          ),
-        ],
       ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Welcome to SkillTrade!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'You are now logged in.',
-              style: TextStyle(fontSize: 16),
-            ),
-            // Add other homepage widgets here
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToPostGig,
-        child: const Icon(Icons.add, size: 36), // Big plus icon
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: _widgetOptions[_selectedIndex],
       bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 6.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             IconButton(
-              icon: const Icon(Icons.home),
-              onPressed: _navigateToHome,
+              icon: Icon(
+                Icons.home_outlined,
+                color: _selectedIndex == 0 ? Theme.of(context).primaryColor : null,
+              ),
+              onPressed: () => _onItemTapped(0),
             ),
-            const SizedBox(width: 48.0), // Space for the FAB
             IconButton(
-              icon: const Icon(Icons.chat_bubble_outline), // Using Flutter's built-in chat icon
-              onPressed: _navigateToCommunityChat,
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () => _onItemTapped(1),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline, size: 40),
+              onPressed: _navigateToPostGig,
+            ),
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () => _onItemTapped(3),
+                ),
+                if (currentUserUid != null)
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('notifications')
+                        .where('recipientId', isEqualTo: currentUserUid)
+                        .where('read', isEqualTo: false)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      final hasUnread = snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+                      return hasUnread
+                          ? Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      )
+                          : const SizedBox.shrink();
+                    },
+                  ),
+              ],
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.person_outline,
+                color: _selectedIndex == 4 ? Theme.of(context).primaryColor : null,
+              ),
+              onPressed: () => _onItemTapped(4),
             ),
           ],
         ),

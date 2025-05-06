@@ -1,10 +1,12 @@
+// post_gig_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'gig.dart'; // Import your Gig model
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PostGigScreen extends StatefulWidget {
-  const PostGigScreen({super.key});
+  final VoidCallback? onGigPosted;
+
+  const PostGigScreen({super.key, this.onGigPosted});
 
   @override
   _PostGigScreenState createState() => _PostGigScreenState();
@@ -12,40 +14,46 @@ class PostGigScreen extends StatefulWidget {
 
 class _PostGigScreenState extends State<PostGigScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _offeringSkillController = TextEditingController();
   final TextEditingController _desiredSkillController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _paymentController = TextEditingController(); // For paid gigs
+  String _gigType = 'Paid'; // Default to Paid
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _postGig() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final User? user = _auth.currentUser;
+        final user = _auth.currentUser;
         if (user != null) {
-          // Fetch the current user's profile to get the username
           final userDoc = await _firestore.collection('users').doc(user.uid).get();
-          final String? username = userDoc.data()?['username'] as String?;
+          final username = userDoc.data()?['username'] as String?;
 
           if (username != null) {
-            final Gig newGig = Gig(
-              offeringSkill: _offeringSkillController.text.trim(),
-              desiredSkill: _desiredSkillController.text.trim(),
-              description: _descriptionController.text.trim(),
-              postedBy: user.uid,
-              postedByUsername: username, // Store the poster's username
-              postedDate: DateTime.now(),
-              status: 'open',
-            );
+            final newGig = {
+              'title': _titleController.text.trim(),
+              'offeringSkill': _offeringSkillController.text.trim(),
+              'desiredSkill': _desiredSkillController.text.trim(),
+              'description': _descriptionController.text.trim(),
+              'location': _locationController.text.trim(),
+              'gigType': _gigType,
+              if (_gigType == 'Paid') 'payment': _paymentController.text.trim(),
+              'postedBy': user.uid,
+              'postedByUsername': username,
+              'postedDate': DateTime.now(),
+              'status': 'open',
+            };
 
-            // Add the new gig to the 'gigs' collection in Firestore
-            await _firestore.collection('gigs').add(newGig.toFirestore());
+            await _firestore.collection('gigs').add(newGig);
 
-            // Optionally, show a success message and navigate back
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Gig posted successfully!')),
             );
-            Navigator.pop(context); // Go back to the previous screen
+            widget.onGigPosted?.call();
+            Navigator.pop(context, true);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Could not retrieve your username.')),
@@ -71,13 +79,25 @@ class _PostGigScreenState extends State<PostGigScreen> {
       appBar: AppBar(
         title: const Text('Post a Gig'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                value == null || value.trim().isEmpty
+                    ? 'Please enter a title for the gig'
+                    : null,
+              ),
+              const SizedBox(height: 16.0),
               TextFormField(
                 controller: _offeringSkillController,
                 decoration: const InputDecoration(
@@ -114,6 +134,53 @@ class _PostGigScreenState extends State<PostGigScreen> {
                     ? 'Please enter a description for the gig'
                     : null,
               ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'Location',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                value == null || value.trim().isEmpty
+                    ? 'Please enter the location for the gig'
+                    : null,
+              ),
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Gig Type',
+                  border: OutlineInputBorder(),
+                ),
+                value: _gigType,
+                items: <String>['Paid', 'Trade'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _gigType = newValue!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16.0),
+              if (_gigType == 'Paid')
+                TextFormField(
+                  controller: _paymentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Payment Amount',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (_gigType == 'Paid' && (value == null || value.trim().isEmpty)) {
+                      return 'Please enter the payment amount';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.number,
+                ),
               const SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: _postGig,
