@@ -1,4 +1,3 @@
-// gig.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Gig {
@@ -11,8 +10,12 @@ class Gig {
   final String? postedByUsername;
   final DateTime? postedDate;
   final String? status;
-  final String? location; // Add location
-  final String? deadline; // Add deadline
+  final String? location;
+  final String? deadline;
+  final String? gigType; // Added gig type
+  final int? payment; // Added payment
+  final String? acceptedByUserId; // Added accepted by user ID
+  final DateTime? acceptedDate; // Added accepted date
 
   Gig({
     this.id,
@@ -26,6 +29,10 @@ class Gig {
     this.status,
     this.location,
     this.deadline,
+    this.gigType,
+    this.payment,
+    this.acceptedByUserId,
+    this.acceptedDate,
   });
 
   // Factory method to create a Gig object from a Firestore document
@@ -43,6 +50,10 @@ class Gig {
       status: data?['status'],
       location: data?['location'],
       deadline: data?['deadline'],
+      gigType: data?['gigType'],
+      payment: data?['payment'] as int?,
+      acceptedByUserId: data?['acceptedByUserId'],
+      acceptedDate: (data?['acceptedDate'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -59,6 +70,10 @@ class Gig {
       'status': status,
       'location': location,
       'deadline': deadline,
+      'gigType': gigType,
+      'payment': payment,
+      'acceptedByUserId': acceptedByUserId,
+      'acceptedDate': acceptedDate,
     };
   }
 }

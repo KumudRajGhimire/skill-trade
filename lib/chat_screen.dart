@@ -1,8 +1,8 @@
-// chat_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'profile_screen.dart'; // Import your ProfileScreen
+import 'package:intl/intl.dart'; // For date and time formatting
 
 class ChatScreen extends StatefulWidget {
   final String otherUserId;
@@ -124,20 +124,99 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildMessage(QueryDocumentSnapshot message) {
+    final data = message.data() as Map<String, dynamic>;
+    final isMe = data['senderId'] == _currentUserId;
+    final text = data['text'] as String? ?? '';
+    final timestamp = data['timestamp'] as Timestamp?;
+    final dateTime = timestamp?.toDate();
+    final formattedTime = dateTime != null
+        ? DateFormat('HH:mm').format(dateTime)
+        : '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Align(
+        alignment: isMe ? Alignment.topRight : Alignment.topLeft,
+        child: Column(
+          crossAxisAlignment:
+          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: isMe ? Colors.blueGrey[700] : Colors.grey[800], // Darker shades for black theme
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              child: Text(
+                text,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            if (formattedTime.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  formattedTime,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12.0),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateHeader(DateTime date) {
+    final now = DateTime.now();
+    final yesterday = now.subtract(const Duration(days: 1));
+
+    String formattedDate;
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      formattedDate = 'Today';
+    } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+      formattedDate = 'Yesterday';
+    } else {
+      formattedDate = DateFormat('MMMM d, y').format(date);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Center(
+        child: Text(
+          formattedDate,
+          style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black, // Set background color to black
       appBar: AppBar(
+        backgroundColor: Colors.grey[900], // Darker app bar color
+        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
         title: GestureDetector(
           onTap: _navigateToUserProfile,
-          child: Text(_otherUsername ?? 'Chat'),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _otherUsername ?? 'Chat',
+                style: const TextStyle(color: Colors.white), // White title text
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70), // Add the icon here
+            ],
+          ),
         ),
       ),
       body: Column(
         children: <Widget>[
           Expanded(
             child: _chatId == null
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: Colors.white)) // White indicator
                 : StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('chats')
@@ -147,15 +226,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(child: Text('Something went wrong: ${snapshot.error}'));
+                  return Center(child: Text('Something went wrong: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: Colors.white));
                 }
 
                 if (snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('No messages yet. Start chatting!'));
+                  return const Center(child: Text('No messages yet. Start chatting!', style: TextStyle(color: Colors.white70)));
                 }
 
                 return ListView.builder(
@@ -164,71 +243,69 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemBuilder: (context, index) {
                     final message = snapshot.data!.docs[index];
                     final data = message.data() as Map<String, dynamic>;
-                    final isMe = data['senderId'] == _currentUserId;
-                    final text = data['text'] as String? ?? '';
                     final timestamp = data['timestamp'] as Timestamp?;
                     final dateTime = timestamp?.toDate();
-                    final formattedTime = dateTime != null
-                        ? '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}'
-                        : '';
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      child: Align(
-                        alignment: isMe ? Alignment.topRight : Alignment.topLeft,
-                        child: Column(
-                          crossAxisAlignment:
-                          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: isMe ? Colors.blue[300] : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: Text(
-                                text,
-                                style: TextStyle(color: isMe ? Colors.white : Colors.black),
-                              ),
-                            ),
-                            if (formattedTime.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: Text(
-                                  formattedTime,
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 12.0),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
+                    // Show date/time headers
+                    if (index == 0) {
+                      return Column(
+                        children: [
+                          if (dateTime != null) _buildDateHeader(dateTime),
+                          _buildMessage(message),
+                        ],
+                      );
+                    }
+
+                    final previousMessage = snapshot.data!.docs[index - 1];
+                    final previousData = previousMessage.data() as Map<String, dynamic>;
+                    final previousTimestamp = previousData['timestamp'] as Timestamp?;
+                    final previousDateTime = previousTimestamp?.toDate();
+
+                    if (dateTime != null && previousDateTime != null &&
+                        (dateTime.year != previousDateTime.year ||
+                            dateTime.month != previousDateTime.month ||
+                            dateTime.day != previousDateTime.day)) {
+                      return Column(
+                        children: [
+                          _buildDateHeader(dateTime),
+                          _buildMessage(message),
+                        ],
+                      );
+                    }
+
+                    return _buildMessage(message);
                   },
                 );
               },
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 25.0), // Increased bottom padding
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Send a message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900], // Darker input field color
+                      borderRadius: BorderRadius.circular(25.0),
+                      border: Border.all(color: Colors.grey[700]!), // Darker border color
                     ),
-                    onSubmitted: (_) => _sendMessage(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: TextField(
+                      controller: _messageController,
+                      style: const TextStyle(color: Colors.white), // White text color
+                      decoration: InputDecoration(
+                        hintText: 'Type here...',
+                        hintStyle: TextStyle(color: Colors.grey[500]), // Lighter hint text
+                        border: InputBorder.none,
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8.0),
                 CircleAvatar(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: Colors.blueGrey[700], // Darker send button color
                   radius: 25.0,
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),

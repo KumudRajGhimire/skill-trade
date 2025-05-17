@@ -1,12 +1,10 @@
-// main_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'post_gig_screen.dart';
 import 'profile_screen.dart';
-import 'home_screen.dart';
-import 'chat_screen.dart';
-import 'notifications_screen.dart';
+import 'home_screen.dart'; // Ensure this file defines HomeScreen
+import 'notifications_screen.dart'; // Ensure this is the correct import
 import 'chats_overview_screen.dart'; // Import the new screen
 
 class MainScreen extends StatefulWidget {
@@ -19,6 +17,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   bool _newGigPosted = false;
+  bool _hasUnreadNotifications = false; // Add this line
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUnreadNotifications(); // Call it here
+  }
 
   void _navigateToPostGig() async {
     final result = await Navigator.push(
@@ -44,90 +49,94 @@ class _MainScreenState extends State<MainScreen> {
       if (_selectedIndex == 0 && _newGigPosted) {
         _newGigPosted = false; // Reset the flag
       }
+      if (_selectedIndex == 3) {
+        _hasUnreadNotifications = false; // Remove the indicator if navigate to notifications
+      }
     });
   }
 
   final List<Widget> _widgetOptions = <Widget>[
-    const HomeScreen(), // HomeScreen will handle its own loading and refreshing
+    const HomeScreen(), // Ensure HomeScreen is properly defined
     const ChatsOverviewScreen(), // Use the new screen here
     const SizedBox(), // Placeholder for Post Gig
-    const NotificationsScreen(),
+    const NotificationsScreen(), // Ensure correct NotificationsScreen is imported
     const ProfileScreen(),
   ];
+
+  Future<void> _checkUnreadNotifications() async {
+    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserUid != null) {
+      FirebaseFirestore.instance
+          .collection('notifications')
+          .where('recipientId', isEqualTo: currentUserUid)
+          .where('read', isEqualTo: false)
+          .snapshots()
+          .listen((snapshot) {
+        setState(() {
+          _hasUnreadNotifications = snapshot.docs.isNotEmpty;
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      appBar: (_selectedIndex == 4 || _selectedIndex == 1)
-          ? null
-          : AppBar(
-        title: _selectedIndex == 0
-            ? const Text('Available Gigs')
-            : _selectedIndex == 3
-            ? const Text('Notifications')
-            : const Text('Home'),
-        automaticallyImplyLeading: false,
-      ),
       body: _widgetOptions[_selectedIndex],
       bottomNavigationBar: BottomAppBar(
+        color: Colors.black, // Set the background color of the BottomAppBar to black
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             IconButton(
               icon: Icon(
                 Icons.home_outlined,
-                color: _selectedIndex == 0 ? Theme.of(context).primaryColor : null,
+                color: _selectedIndex == 0 ? Colors.white : Colors.white38,
               ),
               onPressed: () => _onItemTapped(0),
             ),
             IconButton(
-              icon: const Icon(Icons.chat_bubble_outline),
+              icon: Icon(
+                Icons.chat_bubble_outline,
+                color: _selectedIndex == 1 ? Colors.white : Colors.white38,
+              ),
               onPressed: () => _onItemTapped(1),
             ),
             IconButton(
-              icon: const Icon(Icons.add_circle_outline, size: 40),
+              icon: const Icon(Icons.add_circle_outline, size: 40, color: Colors.white),
               onPressed: _navigateToPostGig,
             ),
             Stack(
               alignment: Alignment.topRight,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
+                  icon: Icon(
+                    Icons.notifications_outlined,
+                    color: _selectedIndex == 3 ? Colors.white : Colors.white38,
+                  ),
                   onPressed: () => _onItemTapped(3),
                 ),
-                if (currentUserUid != null)
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('notifications')
-                        .where('recipientId', isEqualTo: currentUserUid)
-                        .where('read', isEqualTo: false)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      final hasUnread = snapshot.hasData && snapshot.data!.docs.isNotEmpty;
-                      return hasUnread
-                          ? Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.blueAccent,
-                          ),
-                        ),
-                      )
-                          : const SizedBox.shrink();
-                    },
+                if (_hasUnreadNotifications) // Use the boolean variable
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
                   ),
               ],
             ),
             IconButton(
               icon: Icon(
                 Icons.person_outline,
-                color: _selectedIndex == 4 ? Theme.of(context).primaryColor : null,
+                color: _selectedIndex == 4 ? Colors.white : Colors.white38,
               ),
               onPressed: () => _onItemTapped(4),
             ),

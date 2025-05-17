@@ -1,4 +1,3 @@
-// notifications_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,79 +11,101 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  Future<void> _markNotificationAsRead(BuildContext context, String notificationId) async {
+  Future<void> _markNotificationAsRead(String notificationId) async {
     try {
       await FirebaseFirestore.instance.collection('notifications').doc(notificationId).update({'read': true});
     } catch (e) {
       print('Error marking notification as read: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to mark notification as read.')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to mark notification as read.')),
+      );
     }
   }
 
-  Future<void> _deleteNotification(BuildContext context, String notificationId) async {
+  Future<void> _deleteNotification(String notificationId) async {
     try {
       await FirebaseFirestore.instance.collection('notifications').doc(notificationId).delete();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification deleted.')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notification deleted.')),
+      );
     } catch (e) {
       print('Error deleting notification: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete notification.')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete notification.')),
+      );
     }
   }
 
-  void _openChat(BuildContext context, String otherUserId) {
+  Future<void> _updateNotificationStatus(
+      BuildContext context,
+      String notificationId,
+      String updatedStatus,
+      String gigId,
+      String senderId,
+      String gigTitle,
+      ) async {
+    try {
+      // Update the original notification's status
+      await FirebaseFirestore.instance.collection('notifications').doc(notificationId).update({'status': updatedStatus});
+
+      if (updatedStatus == 'confirmed') {
+        // Update the gigs collection to set acceptedByUserId and status
+        final gigRef = FirebaseFirestore.instance.collection('gigs').doc(gigId);
+        await FirebaseFirestore.instance.runTransaction((transaction) async {
+          final snapshot = await transaction.get(gigRef);
+          if (!snapshot.exists) {
+            throw Exception("Gig does not exist!");
+          }
+          final gigData = snapshot.data() as Map<String, dynamic>;
+          if (gigData['acceptedByUserId'] == null) {
+            transaction.update(gigRef, {
+              'acceptedByUserId': senderId,
+              'status': 'accepted',
+              'acceptedDate': FieldValue.serverTimestamp(),
+            });
+          } else if (gigData['acceptedByUserId'] != senderId) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('This gig has already been accepted by someone else.')),
+            );
+            return; // Stop further notification if already accepted by someone else
+          }
+        });
+      }
+
+      // Send a new notification to the sender based on the updated status
+      String notificationMessage = updatedStatus == 'confirmed'
+          ? 'Your request for gig "$gigTitle" has been confirmed.'
+          : 'Your request for gig "$gigTitle" has been rejected.';
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'recipientId': senderId,
+        'type': updatedStatus, // "confirmed" or "rejected"
+        'gigId': gigId,
+        'gigTitle': notificationMessage,
+        'senderId': FirebaseAuth.instance.currentUser!.uid,
+        'senderUsername': 'Gig Poster',
+        'status': updatedStatus,
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Request $updatedStatus successfully!')),
+      );
+    } catch (e) {
+      print('Error updating notification status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update request status. Please try again.')),
+      );
+    }
+  }
+
+  void _openChat(String senderId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatScreen(otherUserId: otherUserId),
+        builder: (context) => ChatScreen(otherUserId: senderId),
       ),
-    );
-  }
-
-  Future<void> _showConfirmationDialog(BuildContext context, String otherUserId, String otherUsername, String notificationId) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // User must tap a button
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Start Chat?'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Do you want to start a chat with "$otherUsername"?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('No'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Dismiss the dialog
-              },
-            ),
-            TextButton(
-              child: const Text('Yes'),
-              onPressed: () {
-                _markNotificationAsRead(context, notificationId).then((_) {
-                  _openChat(context, otherUserId);
-                });
-                Navigator.of(dialogContext).pop(); // Dismiss the dialog
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -93,8 +114,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
+      backgroundColor: Colors.grey[900], // Black background
       body: currentUserUid == null
-          ? const Center(child: Text('Please log in to see notifications.'))
+          ? const Center(child: Text('Please log in to see notifications.', style: TextStyle(color: Colors.white)))
           : StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('notifications')
@@ -103,76 +125,106 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong: ${snapshot.error}'));
+            return Center(child: Text('Something went wrong: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
 
           if (snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No notifications yet.'));
+            return const Center(child: Text('No notifications yet.', style: TextStyle(color: Colors.white)));
           }
 
           return ListView(
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
               final data = document.data() as Map<String, dynamic>;
-              final notificationType = data['type'];
               final notificationId = document.id;
               final isRead = data['read'] as bool? ?? false;
+              final type = data['type'] as String? ?? '';
+              final status = data['status'] as String? ?? '';
+              final gigTitle = data['gigTitle'] as String? ?? 'No Title';
+              final senderId = data['senderId'] as String? ?? '';
+              final senderUsername = data['senderUsername'] as String? ?? 'Unknown User';
+              final gigId = data['gigId'] as String? ?? '';
+              final timestamp = data['timestamp'] as Timestamp?;
+              final dateTime = timestamp?.toDate();
+              final formattedTime = dateTime != null
+                  ? '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}'
+                  : '';
+              final formattedDate = dateTime != null
+                  ? '${dateTime.day}/${dateTime.month}/${dateTime.year}'
+                  : '';
 
-              if (notificationType == 'interest') {
-                final senderUsername = data['senderUsername'] as String? ?? 'Unknown User';
-                final gigTitle = data['gigTitle'] as String? ?? 'Unknown Gig';
-                final senderId = data['senderId'] as String?;
-                final timestamp = data['timestamp'] as Timestamp?;
-                final dateTime = timestamp?.toDate();
-                final formattedTime = dateTime != null ? '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}' : '';
-                final formattedDate = dateTime != null ? '${dateTime.day}/${dateTime.month}/${dateTime.year}' : '';
-
+              if (type == 'request') {
                 return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  color: isRead ? Colors.grey[200] : null,
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  color: isRead ? Colors.grey[800] : Colors.grey[700], // Darker card colors
                   child: ListTile(
-                    leading: const Icon(Icons.notifications_outlined),
-                    title: RichText(
-                      text: TextSpan(
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: senderUsername,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const TextSpan(text: ' has shown interest in your gig: "'),
-                          TextSpan(
-                            text: gigTitle,
-                            style: const TextStyle(fontStyle: FontStyle.italic),
-                          ),
-                          const TextSpan(text: '"'),
-                        ],
-                      ),
-                    ),
-                    subtitle: Text('$formattedTime - $formattedDate'),
-                    trailing: Row(
+                    leading: const Icon(Icons.notifications_outlined, color: Colors.white70),
+                    title: Text('$senderUsername wants to accept your gig "$gigTitle".', style: const TextStyle(color: Colors.white)),
+                    subtitle: Text('$formattedTime - $formattedDate', style: const TextStyle(color: Colors.grey)),
+                    trailing: status == 'pending'
+                        ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (!isRead)
-                          const Icon(Icons.circle, color: Colors.blueAccent, size: 16),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _deleteNotification(context, notificationId),
+                        TextButton(
+                          onPressed: () => _updateNotificationStatus(
+                            context,
+                            notificationId,
+                            'confirmed',
+                            gigId,
+                            senderId,
+                            gigTitle,
+                          ),
+                          child: const Text('Confirm', style: TextStyle(color: Colors.green)), // Keep original color
+                        ),
+                        TextButton(
+                          onPressed: () => _updateNotificationStatus(
+                            context,
+                            notificationId,
+                            'rejected',
+                            gigId,
+                            senderId,
+                            gigTitle,
+                          ),
+                          child: const Text('Reject', style: TextStyle(color: Colors.red)), // Keep original color
                         ),
                       ],
+                    )
+                        : Text(
+                      status == 'confirmed' ? 'Confirmed' : 'Rejected',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: status == 'confirmed' ? Colors.green : Colors.red, // Keep original color
+                      ),
                     ),
                     onTap: () {
-                      if (senderId != null && senderUsername.isNotEmpty) {
-                        _showConfirmationDialog(context, senderId, senderUsername, notificationId);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not start chat. Sender information missing.')),
-                        );
+                      _markNotificationAsRead(notificationId);
+                      if (senderId.isNotEmpty) {
+                        _openChat(senderId); // Open chat for gig requests
                       }
                     },
+                  ),
+                );
+              } else if (type == 'confirmed' || type == 'rejected') {
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  color: isRead ? Colors.grey[800] : Colors.grey[700], // Darker card colors
+                  child: ListTile(
+                    leading: Icon(
+                      type == 'confirmed'
+                          ? Icons.check_circle_outline
+                          : Icons.error_outline,
+                      color: type == 'confirmed' ? Colors.green : Colors.red, // Keep original color
+                    ),
+                    title: Text(gigTitle, style: const TextStyle(color: Colors.white)),
+                    subtitle: Text('$formattedTime - $formattedDate', style: const TextStyle(color: Colors.grey)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.white70),
+                      onPressed: () => _deleteNotification(notificationId),
+                    ),
+                    onTap: () => _markNotificationAsRead(notificationId),
                   ),
                 );
               } else {

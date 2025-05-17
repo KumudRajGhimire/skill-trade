@@ -1,4 +1,3 @@
-// post_gig_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -77,8 +76,11 @@ class _PostGigScreenState extends State<PostGigScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[900], // Dark background
       appBar: AppBar(
-        title: const Text('Post a Gig'),
+        backgroundColor: Colors.grey[800], // Darker app bar
+        title: const Text('Post a Gig', style: TextStyle(color: Colors.white)), // White title
+        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -89,9 +91,17 @@ class _PostGigScreenState extends State<PostGigScreen> {
             children: <Widget>[
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
                   labelText: 'Title',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                  ),
                 ),
                 validator: (value) =>
                 value == null || value.trim().isEmpty
@@ -100,15 +110,24 @@ class _PostGigScreenState extends State<PostGigScreen> {
               ),
               const SizedBox(height: 16.0),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Gig Type',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                  ),
                 ),
+                dropdownColor: Colors.grey[800], // Dark dropdown background
+                style: const TextStyle(color: Colors.white), // White text
                 value: _gigType,
                 items: <String>['Paid', 'Trade'].map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value),
+                    child: Text(value, style: const TextStyle(color: Colors.white)), // White text
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
@@ -121,9 +140,17 @@ class _PostGigScreenState extends State<PostGigScreen> {
               if (_gigType == 'Trade')
                 TextFormField(
                   controller: _offeringSkillController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text
+                  decoration: InputDecoration(
                     labelText: 'Offering Skill',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
                   ),
                   validator: (value) =>
                   value == null || value.trim().isEmpty
@@ -133,9 +160,17 @@ class _PostGigScreenState extends State<PostGigScreen> {
               if (_gigType == 'Trade') const SizedBox(height: 16.0),
               TextFormField(
                 controller: _desiredSkillController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
                   labelText: 'Desired Skill',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                  ),
                 ),
                 validator: (value) =>
                 value == null || value.trim().isEmpty
@@ -145,10 +180,18 @@ class _PostGigScreenState extends State<PostGigScreen> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _descriptionController,
+                style: const TextStyle(color: Colors.white), // White text
                 maxLines: 3,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Description',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                  ),
                 ),
                 validator: (value) =>
                 value == null || value.trim().isEmpty
@@ -158,9 +201,17 @@ class _PostGigScreenState extends State<PostGigScreen> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _locationController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
                   labelText: 'Location',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                  ),
                 ),
                 validator: (value) =>
                 value == null || value.trim().isEmpty
@@ -171,9 +222,17 @@ class _PostGigScreenState extends State<PostGigScreen> {
               if (_gigType == 'Paid')
                 TextFormField(
                   controller: _paymentController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text
+                  decoration: InputDecoration(
                     labelText: 'Payment Amount',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
                   ),
                   validator: (value) {
                     if (_gigType == 'Paid' && (value == null || value.trim().isEmpty)) {
@@ -187,6 +246,10 @@ class _PostGigScreenState extends State<PostGigScreen> {
               const SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: _postGig,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Darker button color
+                  foregroundColor: Colors.white, // White text color
+                ),
                 child: const Text('Post Gig'),
               ),
             ],

@@ -114,8 +114,11 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[900], // Dark background color
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        backgroundColor: Colors.grey[800], // Darker app bar color
+        title: const Text('Sign Up', style: TextStyle(color: Colors.white)), // White title text
+        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -129,16 +132,30 @@ class _SignupScreenState extends State<SignupScreen> {
                 const Center(
                   child: Text(
                     'Create an Account',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white), // White text
                   ),
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text color
+                  decoration: InputDecoration(
                     labelText: 'Email Address',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
+                    errorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
+                    focusedErrorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty
                       ? 'Please enter your email'
@@ -149,9 +166,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _usernameController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text color
+                  decoration: InputDecoration(
                     labelText: 'Username',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
+                    errorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
+                    focusedErrorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
                   ),
                   validator: (value) =>
                   value == null || value.trim().isEmpty
@@ -161,9 +192,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _locationController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text color
+                  decoration: InputDecoration(
                     labelText: 'Location',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
+                    errorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
+                    focusedErrorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
                   ),
                   validator: (value) =>
                   value == null || value.trim().isEmpty
@@ -174,9 +219,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text color
+                  decoration: InputDecoration(
                     labelText: 'Password',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
+                    errorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
+                    focusedErrorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
                   ),
                   validator: (value) => value == null || value.isEmpty
                       ? 'Enter password'
@@ -188,9 +247,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.white), // White text color
+                  decoration: InputDecoration(
                     labelText: 'Confirm Password',
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Lighter label
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!), // Darker border
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Blue focus border
+                    ),
+                    errorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
+                    focusedErrorBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red), // Red error border
+                    ),
                   ),
                   validator: (value) => value == null || value.isEmpty
                       ? 'Confirm password'
@@ -201,6 +274,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _signup, // Disable button while loading
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue, // Darker button color
+                    foregroundColor: Colors.white, // White text color
+                  ),
                   child: _isLoading
                       ? const CircularProgressIndicator()
                       : const Text('Sign Up'),
@@ -210,7 +287,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Already have an account? Log in'),
+                  child: const Text('Already have an account? Log in', style: TextStyle(color: Colors.white)), // White text
                 ),
               ],
             ),

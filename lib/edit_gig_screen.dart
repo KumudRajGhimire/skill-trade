@@ -74,8 +74,9 @@ class _EditGigScreenState extends State<EditGigScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Confirm Delete'),
-          content: const Text('Are you sure you want to delete this gig? This action cannot be undone.'),
+          backgroundColor: Colors.grey[800], // Darker background for dialog
+          title: const Text('Confirm Delete', style: TextStyle(color: Colors.white)), // White text
+          content: const Text('Are you sure you want to delete this gig? This action cannot be undone.', style: TextStyle(color: Colors.white70)), // Lighter text
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
@@ -120,8 +121,11 @@ class _EditGigScreenState extends State<EditGigScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[900], // Dark background color
       appBar: AppBar(
-        title: const Text('Edit Gig'),
+        backgroundColor: Colors.grey[800], // Darker app bar
+        title: const Text('Edit Gig', style: TextStyle(color: Colors.white)), // White title
+        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -132,7 +136,14 @@ class _EditGigScreenState extends State<EditGigScreen> {
             children: <Widget>[
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Light grey label
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey[700]!)), // Darker border
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)), // Blue focus border
+                  border: const OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a title';
@@ -143,7 +154,14 @@ class _EditGigScreenState extends State<EditGigScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Light grey label
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey[700]!)), // Darker border
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)), // Blue focus border
+                  border: const OutlineInputBorder(),
+                ),
                 maxLines: 3,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -155,7 +173,14 @@ class _EditGigScreenState extends State<EditGigScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _offeringSkillController,
-                decoration: const InputDecoration(labelText: 'Offering Skill'),
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
+                  labelText: 'Offering Skill',
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Light grey label
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey[700]!)), // Darker border
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)), // Blue focus border
+                  border: const OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the skill you are offering';
@@ -166,7 +191,14 @@ class _EditGigScreenState extends State<EditGigScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _desiredSkillController,
-                decoration: const InputDecoration(labelText: 'Desired Skill'),
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
+                  labelText: 'Desired Skill',
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Light grey label
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey[700]!)), // Darker border
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)), // Blue focus border
+                  border: const OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the skill you are looking for';
@@ -177,7 +209,14 @@ class _EditGigScreenState extends State<EditGigScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _locationController,
-                decoration: const InputDecoration(labelText: 'Location'),
+                style: const TextStyle(color: Colors.white), // White text
+                decoration: InputDecoration(
+                  labelText: 'Location',
+                  labelStyle: TextStyle(color: Colors.grey[400]), // Light grey label
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey[700]!)), // Darker border
+                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)), // Blue focus border
+                  border: const OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a location';
@@ -190,7 +229,7 @@ class _EditGigScreenState extends State<EditGigScreen> {
                 children: <Widget>[
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Trade'),
+                      title: const Text('Trade', style: TextStyle(color: Colors.white)), // White text
                       value: 'Trade',
                       groupValue: _gigType,
                       onChanged: (value) {
@@ -202,7 +241,7 @@ class _EditGigScreenState extends State<EditGigScreen> {
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Paid'),
+                      title: const Text('Paid', style: TextStyle(color: Colors.white)), // White text
                       value: 'Paid',
                       groupValue: _gigType,
                       onChanged: (value) {
@@ -218,7 +257,14 @@ class _EditGigScreenState extends State<EditGigScreen> {
                 TextFormField(
                   controller: _paymentController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Payment (₹)'),
+                  style: const TextStyle(color: Colors.white), // White text
+                  decoration: InputDecoration(
+                    labelText: 'Payment (₹)',
+                    labelStyle: TextStyle(color: Colors.grey[400]), // Light grey label
+                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey[700]!)), // Darker border
+                    focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)), // Blue focus border
+                    border: const OutlineInputBorder(),
+                  ),
                   validator: (value) {
                     if (_gigType == 'Paid' && (value == null || value.isEmpty)) {
                       return 'Please enter the payment amount';
@@ -235,6 +281,10 @@ class _EditGigScreenState extends State<EditGigScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: _updateGig,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue, // Blue button
+                      foregroundColor: Colors.white, // White text
+                    ),
                     child: const Text('Update Gig'),
                   ),
                   ElevatedButton(
